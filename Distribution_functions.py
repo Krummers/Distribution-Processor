@@ -21,7 +21,7 @@ def rewrite_line(file, index, line):
     txt.writelines(l)
     txt.close()
         
-def sha1_info(sha1):
+def sha1_info(sha1, editors = False, comments = False):
     try:
         txt = os.path.join(os.getcwd(), "check.txt")
         download_data("https://ct.wiimm.de/?s=" + sha1, txt)
@@ -36,9 +36,16 @@ def sha1_info(sha1):
         information = bs(information, "html.parser")
         
         s = str(information.find_all("td")[17].contents[0])
-        pos = s.find("[")
         
-        return s[0:pos - 1]
+        if comments == False:
+            pos = s.find("[")
+            s = s[0:pos - 1]
+            if editors == False:
+                pos = s.find(",,")
+                if pos != -1:
+                    s = s[:pos] + ")"
+        
+        return s
         
     except:
         if os.path.exists(txt):

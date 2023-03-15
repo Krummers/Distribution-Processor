@@ -45,29 +45,17 @@ dis_author = str(input("Enter the author(s) of {}: ".format(dis_name)))
 dis_date = str(input("Enter the release date of {}: ".format(dis_name)))
 dis_tag = str(input("Enter the distribution tag of {}: ".format(dis_name)))
 
-while True:
-    option_pre = str(input("Does {} have a predecessor? (Y or N): ".format(dis_name))).lower()
-    
-    if option_pre in dis.yn[0:2]:
-        dis_pre = str(input("Enter the UUID of the previous version of {}: ".format(dis_name)))
-        break
-    elif option_pre in dis.yn[2:4]:
-        dis_pre = ""
-        break
-    else:
-        print("This is not an option. Please try again. ")
+v = dis.question("Does {} have a predecessor? (Y or N): ".format(dis_name))
+if v:
+    dis_pre = str(input("Enter the UUID of the previous version of {}: ".format(dis_name)))
+else:
+    dis_pre = ""
 
-while True:
-    option_region = str(input("Does {} have a Wiimmfi region? (Y or N): ".format(dis_name))).lower()
-    
-    if option_region in dis.yn[0:2]:
-        dis_region = str(input("Enter the region number of {}: ".format(dis_name)))
-        break
-    elif option_region in dis.yn[2:4]:
-        dis_region = ""
-        break
-    else:
-        print("This is not an option. Please try again. ")
+v = dis.question("Does {} have a Wiimmfi region? (Y or N): ".format(dis_name))
+if v:
+    dis_region = str(input("Enter the region number of {}: ".format(dis_name)))
+else:
+    dis_region = ""
 
 dis_url = str(input("Enter the URL of {}: ".format(dis_name)))
 

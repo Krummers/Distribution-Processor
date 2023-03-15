@@ -32,6 +32,17 @@ def download_data(link, location):
     with open(location, "wb") as k:
         k.write(data.content)
 
+def question(string):
+    while True:
+        option = str(input(string))
+        
+        if option.lower() in yn[0:2]:
+            return True
+        elif option.lower() in yn[2:4]:
+            return False
+        else:
+            print("This is not an option. Please try again.")
+
 def rewrite_line(file, index, line):
     txt = open(file, "r")
     l = txt.readlines()
@@ -73,3 +84,27 @@ def sha1_info(sha1, editors = False, comments = False):
         if os.path.exists(txt):
             os.remove(txt)
         return False
+
+class CustomTrack(object):
+    def __init__(self, name = "Custom Track", version = "v1.0", \
+                 variant = None, author = "Steve", comments = []):
+        self.name = name
+        self.version = version
+        self.variant = variant
+        self.author = author
+        self.comments = comments
+    
+    def __str__(self):
+        name_s = str(self.name)
+        version_s = str(self.version)
+        author_s = "(" + str(self.author) + ")"
+        comments_s = str(self.comments).replace("'", "")
+        
+        if self.variant is not None:
+            variant_s = "{" + str(self.variant) + "}"
+            return name_s + " " + version_s + " " + variant_s + " " + author_s + " " + comments_s
+        else:
+            return name_s + " " + version_s + " " + author_s + " " + comments_s
+    
+    def __repr__(self):
+        return str(self)

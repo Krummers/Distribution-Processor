@@ -59,6 +59,16 @@ else:
 
 dis_url = str(input("Enter the URL of {}: ".format(dis_name)))
 
+# Filters szs files for tracks only
+szs = []
+for file in os.listdir():
+    if file.endswith(".szs"):
+        szs.append(file)
+
+for track in szs:
+    if track[:-4] not in dis.filenames:
+        os.remove(track)
+
 # Compresses files and creates distribution.txt
 print("Compressing files...")
 os.chdir(cwd)

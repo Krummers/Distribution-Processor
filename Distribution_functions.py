@@ -1,5 +1,6 @@
 import os
 import requests as rq
+import subprocess as sp
 from bs4 import BeautifulSoup as bs
 
 filenames = {"beginner_course", "farm_course", \
@@ -32,6 +33,28 @@ def download_data(link, location):
     with open(location, "wb") as k:
         k.write(data.content)
 
+def track_order(static, mode_type):
+    with open("output.txt", "w") as file:
+        sp.run("wstrt {} {}".format(mode_type, static), stdout = file, text = True)
+    
+    d = {}
+    info = read_file("output.txt")
+    if mode_type == "tracks":
+        end = 45
+    if mode_type == "arenas":
+        end = 18
+    
+    for k in range(6, end):
+        if info[k][0] == "-":
+            continue
+        key = info[k][6] + info[k][8]
+        value = info[k][11] + info[k][13]
+        d[key] = value
+    
+    os.remove("output.txt")
+    
+    return d
+
 def question(string):
     while True:
         option = str(input(string))
@@ -42,6 +65,18 @@ def question(string):
             return False
         else:
             print("This is not an option. Please try again.")
+
+def read_file(file):
+    txt = open(file, "r")
+    info = txt.readlines()
+    txt.close()
+    return info
+
+def read_line(file, index):
+    txt = open(file, "r")
+    info = txt.readlines()
+    txt.close()
+    return info[index - 1]
 
 def rewrite_line(file, index, line):
     txt = open(file, "r")

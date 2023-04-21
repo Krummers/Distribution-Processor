@@ -59,8 +59,9 @@ else:
 
 dis_url = str(input("Enter the URL of {}: ".format(dis_name)))
 
-# Filters szs files for tracks only
+# Filters szs files for tracks only and locates StaticR.rel
 szs = []
+static = None
 for file in os.listdir():
     if file.endswith(".szs"):
         szs.append(file)
@@ -116,6 +117,7 @@ f = open(distribution, "w")
 f.writelines(info)
 f.close()
 
+# Identifies tracks
 for k in range(190, len(info)):
     if info[k] != "\n":
         sha1 = dis.sha1_info(info[k][0:40])
@@ -125,6 +127,11 @@ for k in range(190, len(info)):
         else:
             print("Unidentified track!")
 
+# Sorts tracks based on StaticR.rel
+if static:
+    pass
+
+# Cleanup
 name = dis_name + " " + dis_version + ".txt"
 os.rename(distribution, os.path.join(cwd, name))
 

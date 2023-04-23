@@ -23,7 +23,7 @@ filenames = {"beginner_course", "farm_course", \
              "skate_battle", "casino_battle", \
              "sand_battle", "old_battle4_sfc", \
              "old_battle3_gba", "old_matenro_64", \
-             "old_CookieLand_gc", "old_House_ds"}
+             "old_cookieland_gc", "old_house_ds"}
 
 yn = ["yes", "y", "no", "n"]
 

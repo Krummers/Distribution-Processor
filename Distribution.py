@@ -67,7 +67,7 @@ for file in os.listdir():
         szs.append(file)
 
 for track in szs:
-    if track[:-4] not in dis.filenames:
+    if track[:-4].lower() not in dis.filenames:
         os.remove(track)
 
 # Compresses files and creates distribution.txt

@@ -121,9 +121,9 @@ f.close()
 for k in range(190, len(info)):
     if info[k] != "\n":
         sha1 = dis.sha1_info(info[k][0:40])
-        if sha1 != False:
+        if sha1 != None:
             dis.rewrite_line(distribution, k + 1, info[k][0:48] + sha1 + "\n")
-            print("Track information found.")
+            print("Track information found: {}".format(sha1))
         else:
             print("Unidentified track!")
 

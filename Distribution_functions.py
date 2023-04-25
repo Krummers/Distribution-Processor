@@ -118,7 +118,7 @@ def sha1_info(sha1, editors = False, comments = False):
     except:
         if os.path.exists(txt):
             os.remove(txt)
-        return False
+        return None
 
 class CustomTrack(object):
     def __init__(self, name = "Custom Track", version = "v1.0", \

@@ -57,7 +57,7 @@ def track_order(static, mode_type):
 
 def question(string):
     while True:
-        option = str(input(string))
+        option = str(input(string + " (Y or N): "))
         
         if option.lower() in yn[0:2]:
             return True

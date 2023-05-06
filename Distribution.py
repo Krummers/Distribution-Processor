@@ -45,13 +45,13 @@ dis_author = str(input("Enter the author(s) of {}: ".format(dis_name)))
 dis_date = str(input("Enter the release date of {}: ".format(dis_name)))
 dis_tag = str(input("Enter the distribution tag of {}: ".format(dis_name)))
 
-v = dis.question("Does {} have a predecessor? (Y or N): ".format(dis_name))
+v = dis.question("Does {} have a predecessor?".format(dis_name))
 if v:
     dis_pre = str(input("Enter the UUID of the previous version of {}: ".format(dis_name)))
 else:
     dis_pre = ""
 
-v = dis.question("Does {} have a Wiimmfi region? (Y or N): ".format(dis_name))
+v = dis.question("Does {} have a Wiimmfi region?".format(dis_name))
 if v:
     dis_region = str(input("Enter the region number of {}: ".format(dis_name)))
 else:

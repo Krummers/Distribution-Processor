@@ -1,7 +1,6 @@
 import Distribution_functions as dis
 import os
 import subprocess as sp
-from bs4 import BeautifulSoup as bs
 
 cwd = os.getcwd()
 contact = os.path.join(cwd, "contact.txt")
@@ -61,10 +60,12 @@ dis_url = str(input("Enter the URL of {}: ".format(dis_name)))
 
 # Filters szs files for tracks only and locates StaticR.rel
 szs = []
-static = None
+static = []
 for file in os.listdir():
     if file.endswith(".szs"):
         szs.append(file)
+    if file.endswith(".rel"):
+        static.append(file)
 
 for track in szs:
     if track[:-4].lower() not in dis.filenames:
@@ -127,9 +128,25 @@ for k in range(190, len(info)):
         else:
             print("Unidentified track!")
 
-# Sorts tracks based on StaticR.rel
-if static:
-    pass
+# Extracts StaticR.rel information
+if len(static) > 1:
+    combinations = [(static_1, static_2) for static_1 in static for static_2 in static]
+    for combination in combinations:
+        for k in ["arenas", "tracks"]:
+            if dis.track_order(combination[0], k) != dis.track_order(combination[1], k):
+                print("{} is not equal to {}!".format(combination[0], combination[1]))
+
+if static != []:
+    arenas = dis.track_order(static[0], "arenas")
+    tracks = dis.track_order(static[0], "tracks")
+
+    # Extracts distribution track list
+    lines = []
+    for k in range(190, len(info)):
+        if info[k] == "\n":
+            continue
+        line = dis.CustomTrackLine(info[k][0:40], dis.Slot(int(info[k][42:46][1]), int(info[k][42:46][3]), info[k][42:46][0]), info[k][48:])
+        lines.append(line)
 
 # Cleanup
 name = dis_name + " " + dis_version + ".txt"

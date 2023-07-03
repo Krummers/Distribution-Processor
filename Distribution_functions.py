@@ -35,7 +35,7 @@ def download_data(link, location):
 
 def track_order(static, mode_type):
     with open("output.txt", "w") as file:
-        sp.run("wstrt {} {}".format(mode_type, static), stdout = file, text = True)
+        sp.run("wstrt {} \"{}\"".format(mode_type, static), stdout = file, text = True)
     
     d = {}
     info = read_file("output.txt")
@@ -47,8 +47,8 @@ def track_order(static, mode_type):
     for k in range(6, end):
         if info[k][0] == "-":
             continue
-        key = info[k][6] + info[k][8]
-        value = info[k][11] + info[k][13]
+        key = Slot(int(info[k][6]), int(info[k][8]), mode_type)
+        value = Slot(int(info[k][11]), int(info[k][13]), mode_type)
         d[key] = value
     
     os.remove("output.txt")
@@ -120,26 +120,104 @@ def sha1_info(sha1, editors = False, comments = False):
             os.remove(txt)
         return None
 
-class CustomTrack(object):
-    def __init__(self, name = "Custom Track", version = "v1.0", \
-                 variant = None, author = "Steve", comments = []):
-        self.name = name
-        self.version = version
-        self.variant = variant
-        self.author = author
-        self.comments = comments
+class Slot(object):
+    
+    def __init__(self, cup = 1, track = 1, mode = ""):
+        if cup <= 0:
+            raise ValueError("Cup 0 or lower does not exist.")
+        if not (1 <= track <= 5):
+            raise ValueError("Track can only be in between 1 and 5.")
+        
+        if mode == "tracks" or mode == " ":
+            mode = ""
+        elif mode == "arenas" or mode == "A":
+            mode = "A"
+        else:
+            raise ValueError("Only tracks, arenas or A are accepted.")
+        
+        self.cup = cup
+        self.track = track
+        self.type = mode
     
     def __str__(self):
-        name_s = str(self.name)
-        version_s = str(self.version)
-        author_s = "(" + str(self.author) + ")"
-        comments_s = str(self.comments).replace("'", "")
-        
-        if self.variant is not None:
-            variant_s = "{" + str(self.variant) + "}"
-            return name_s + " " + version_s + " " + variant_s + " " + author_s + " " + comments_s
-        else:
-            return name_s + " " + version_s + " " + author_s + " " + comments_s
+        return str(self.type) + str(self.cup) + "." + str(self.track)
     
     def __repr__(self):
         return str(self)
+    
+    def __lt__(self, other):
+        if type(other) != Slot:
+            raise TypeError("'<' not supported between instances of '{}' and '{}'".format(type(self), type(other)))
+        
+        if self.cup != other.cup:
+            return self.cup < other.cup
+        elif self.track != other.track:
+            return self.track < other.track
+        else:
+            return False
+    
+    def __le__(self, other):
+        if type(other) != Slot:
+            raise TypeError("'<=' not supported between instances of '{}' and '{}'".format(type(self), type(other)))
+        
+        if self.cup != other.cup:
+            return self.cup <= other.cup
+        elif self.track != other.track:
+            return self.track <= other.track
+        else:
+            return True
+    
+    def __eq__(self, other):
+        if type(other) != Slot:
+            raise TypeError("'==' not supported between instances of '{}' and '{}'".format(type(self), type(other)))
+        
+        return (self.cup == other.cup) and (self.track == other.track)
+    
+    def __gt__(self, other):
+        if type(other) != Slot:
+            raise TypeError("'>' not supported between instances of '{}' and '{}'".format(type(self), type(other)))
+        
+        if self.cup != other.cup:
+            return self.cup > other.cup
+        elif self.track != other.track:
+            return self.track > other.track
+        else:
+            return False
+    
+    def __ge__(self, other):
+        if type(other) != Slot:
+            raise TypeError("'>=' not supported between instances of '{}' and '{}'".format(type(self), type(other)))
+        
+        if self.cup != other.cup:
+            return self.cup >= other.cup
+        elif self.track != other.track:
+            return self.track >= other.track
+        else:
+            return True
+    
+    def __ne__(self, other):
+        if type(other) != Slot:
+            raise TypeError("'==' not supported between instances of '{}' and '{}'".format(type(self), type(other)))
+        
+        return (self.cup != other.cup) or (self.track != other.track)
+    
+    def __hash__(self):
+        return hash(str(self))
+
+class CustomTrackLine(object):
+    
+    def __init__(self, sha1, slot, name):
+        self.sha1 = sha1
+        self.slot = slot
+        self.name = name
+    
+    def __str__(self):
+        if self.slot.type == "A":
+            sslot = "  " + str(self.slot) + "  "
+        else:
+            sslot = "   " + str(self.slot) + "  "
+        
+        return self.sha1 + sslot + self.name
+    
+    def __repr__(self):
+        return self.sha1 + "\n" + str(self.slot) + "\n" + self.name

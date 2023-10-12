@@ -1,155 +1,91 @@
-import Distribution_functions as dis
 import os
 import subprocess as sp
+import shutil as sh
+import platform as pf
+
+import Modules.constants as cs
+import Modules.file as fl
+import Modules.functions as ft
+import Modules.track as tr
 
 cwd = os.getcwd()
-contact = os.path.join(cwd, "contact.txt")
-distribution = os.path.join(cwd, "distribution.txt")
+contacts = fl.Folder(os.path.join(cwd, "Contacts"))
+settings = fl.Folder(os.path.join(cwd, "Settings"))
 
-# Defines contact information
-if os.path.exists(contact):
-    while True:
-        contact_option = str(input("Should new contact information be created? (Y or N): ")).lower()
-        
-        if contact_option in dis.yn:
-            if contact_option in dis.yn[0:2]:
-                os.remove(contact)
-            break
-        else:
-            print("This is not an option. Please try again.")
-else:
-    contact_option = "yes"
+# Collect distribution information
+name = str(input("Enter the name of the distribution: "))
+version = str(input(f"Enter the version number of {name}: "))
+author = str(input(f"Enter the author(s) of {name}: "))
+date = str(input(f"Enter the release date of {name}: "))
+tag = str(input(f"Enter the distribution tag of {name}: "))
 
-if contact_option in dis.yn[0:2]:    
-    # Defines usernames
-    archive_name = str(input("Enter username on Wiimms CT-Archive: "))
-    wiimmfi_name = str(input("Enter username on Wiimmfi: "))
-    wiiki_name = str(input("Enter username on the Wiiki: "))
-    other_names = str(input("Enter other usernames on different platforms in \"service=name\" format, separated by a comma: "))
-    mail = str(input("Enter e-mail address: "))
-    
-    # Creates contact.txt
-    f = open(contact, "w")
-    f.write("@USER-CT-WIIMM\t= {}\n".format(archive_name))
-    f.write("@USER-WIIMMFI\t= {}\n".format(wiimmfi_name))
-    f.write("@USER-CT-WIIKI\t= {}\n".format(wiiki_name))
-    f.write("@USER-MISC\t= {}\n".format(other_names))
-    f.write("@MAIL\t\t= {}\n".format(mail))
-    f.close()
-
-# Stores distribution information
-dis_name = str(input("Enter the name of the distribution: "))
-dis_version = str(input("Enter the version number of {}: ".format(dis_name)))
-dis_author = str(input("Enter the author(s) of {}: ".format(dis_name)))
-dis_date = str(input("Enter the release date of {}: ".format(dis_name)))
-dis_tag = str(input("Enter the distribution tag of {}: ".format(dis_name)))
-
-v = dis.question("Does {} have a predecessor?".format(dis_name))
+v = ft.question(f"Does {name} have a predecessor?")
 if v:
-    dis_pre = str(input("Enter the UUID of the previous version of {}: ".format(dis_name)))
+    previous_uuid = str(input(f"Enter the UUID of the previous version of {name}: "))
 else:
-    dis_pre = ""
+    previous_uuid = ""
 
-v = dis.question("Does {} have a Wiimmfi region?".format(dis_name))
+v = ft.question(f"Does {name} have a Wiimmfi region?")
 if v:
-    dis_region = str(input("Enter the region number of {}: ".format(dis_name)))
+    region = str(input(f"Enter the region number of {name}: "))
 else:
-    dis_region = ""
+    region = ""
 
-dis_url = str(input("Enter the URL of {}: ".format(dis_name)))
+url = str(input(f"Enter the Wiiki article URL of {name}: "))
 
-# Filters szs files for tracks only and locates StaticR.rel
-szs = []
-static = []
-for file in os.listdir():
-    if file.endswith(".szs"):
-        szs.append(file)
-    if file.endswith(".rel"):
-        static.append(file)
+# Remove non-SZS files
+for file in os.listdir(os.path.join(cwd, "Input")):
+    file = fl.File(os.path.join(cwd, "Input", file))
+    if not file.filename.endswith("szs") or not file.filename[:-4] in cs.filenames:
+        if not file.filename.endswith(".gitignore"):
+            file.delete()
 
-for track in szs:
-    if track[:-4].lower() not in dis.filenames:
-        os.remove(track)
-
-# Compresses files and creates distribution.txt
+# Compress files and create distribution.txt
 print("Compressing files...")
+os.chdir(os.path.join(cwd, "Input"))
+sp.run(["wszst", "compress", "--szs", "--rmai", "*.szs", "-o"])
+sp.run(["wszst", "distrib", "."])
 os.chdir(cwd)
-sp.run("wszst compress --szs --norm --rmai *.szs -o")
-sp.run("wszst distrib .")
-os.chdir(cwd)
 
-# Writes contact information
-f = open(contact, "r")
-info = f.readlines()
-f.close()
+distribution = fl.TXT(os.path.join(cwd, "Input", "distribution.txt"))
 
-print("Writing contact information...")
-dis.rewrite_line(distribution, 42, info[0])
-dis.rewrite_line(distribution, 45, info[1])
-dis.rewrite_line(distribution, 48, info[2])
-dis.rewrite_line(distribution, 51, info[3])
-dis.rewrite_line(distribution, 54, info[4])
+# Write contact and distribution information
+print("Writing contact and distribution information...")
+for line, contact in zip([42, 45, 48, 51, 54], cs.contacts):
+    distribution.add_to_line(line, fl.CNT(os.path.join("Contacts", f"{contact}.cnt")).get_value())
 
-# Writes distribution information
-print("Writing distribution information...")
-dis.rewrite_line(distribution, 68, "@NAME\t\t= {}\n".format(dis_name))
-dis.rewrite_line(distribution, 69, "@VERSION\t= {}\n".format(dis_version))
-dis.rewrite_line(distribution, 70, "@AUTHORS\t= {}\n".format(dis_author))
-dis.rewrite_line(distribution, 73, "@RELEASE-DATE\t= {}\n".format(dis_date))
-dis.rewrite_line(distribution, 77, "@REFERENCE-NAME\t= {}\n".format(dis_tag))
+distribution.rewrite(68, f"@NAME\t\t= {name}")
+distribution.rewrite(69, f"@VERSION\t= {version}")
+distribution.rewrite(70, f"@AUTHORS\t= {author}")
+distribution.rewrite(73, f"@RELEASE-DATE\t= {date}")
+distribution.rewrite(77, f"@REFERENCE-NAME\t= {tag}")
+distribution.rewrite(84, f"@PREDECESSOR\t= {previous_uuid}")
+distribution.rewrite(87, f"@WIIMMFI-REGION\t= {region}")
+distribution.rewrite(89, f"@INFO-URL\t= {url}")
 
-if dis_pre != "":
-    dis.rewrite_line(distribution, 84, "@PREDECESSOR\t= {}\n".format(dis_pre))
+# Remove standard SHA1s
+distribution.remove(191, 277)
 
-if dis_region != "":
-    dis.rewrite_line(distribution, 87, "@WIIMMFI-REGION\t= {}\n".format(dis_region))
+# Enter track information in distribution.txt
+definition = distribution.read()[191 - 1:]
+for x in range(len(definition)):
+    if definition[x] != "\n" and definition[x] != "":
+        information = definition[x].split()
+        file = fl.File(os.path.join(cwd, "Input", information[2] + ".szs"))
+        track = tr.Track(information[0], information[1])
+        distribution.rewrite(191 + x, str(track))
+        if track.information is None:
+            file.move(os.path.join(cwd, "Output", file.filename))
 
-dis.rewrite_line(distribution, 89, "@INFO-URL\t= {}\n".format(dis_url))
+# Clean repository
+distribution.rename(f"{name} {version}.txt")
+distribution.move(os.path.join(cwd, "Output", distribution.filename))
 
-# Removes standard SHA1s
-f = open(distribution, "r")
-info = f.readlines()
-f.close()
-
-for k in range(87):
-    info.pop(189)
-
-f = open(distribution, "w")
-f.writelines(info)
-f.close()
-
-# Identifies tracks
-for k in range(190, len(info)):
-    if info[k] != "\n":
-        sha1 = dis.sha1_info(info[k][0:40])
-        if sha1 != None:
-            dis.rewrite_line(distribution, k + 1, info[k][0:48] + sha1 + "\n")
-            print("Track information found: {}".format(sha1))
-        else:
-            print("Unidentified track!")
-
-# Extracts StaticR.rel information
-if len(static) > 1:
-    combinations = [(static_1, static_2) for static_1 in static for static_2 in static]
-    for combination in combinations:
-        for k in ["arenas", "tracks"]:
-            if dis.track_order(combination[0], k) != dis.track_order(combination[1], k):
-                print("{} is not equal to {}!".format(combination[0], combination[1]))
-
-if static != []:
-    arenas = dis.track_order(static[0], "arenas")
-    tracks = dis.track_order(static[0], "tracks")
-
-    # Extracts distribution track list
-    lines = []
-    for k in range(190, len(info)):
-        if info[k] == "\n":
-            continue
-        line = dis.CustomTrackLine(info[k][0:40], dis.Slot(int(info[k][42:46][1]), int(info[k][42:46][3]), info[k][42:46][0]), info[k][48:])
-        lines.append(line)
-
-# Cleanup
-name = dis_name + " " + dis_version + ".txt"
-os.rename(distribution, os.path.join(cwd, name))
+gitignore = fl.File(os.path.join(cwd, "Input", ".gitignore"))
+gitignore.rename("tmp.gitignore")
+gitignore.move_up(1)
+fl.Folder(os.path.join(cwd, "Input")).empty()
+gitignore.move_down(["Input"])
+gitignore.rename(".gitignore")
 
 input("All done!")

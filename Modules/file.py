@@ -55,13 +55,17 @@ class Folder(File):
     
     def delete(self):
         sh.rmtree(self.path)
+    
+    def empty(self):
+        self.delete()
+        os.mkdir(self.path)
 
 class TXT(File):
     
     def read(self):
         with open(self.path, "r", encoding = "utf-8") as file:
             lines = file.readlines()
-        for x in range(len(lines)):
+        for x in range(len(lines) - 1):
             lines[x] = lines[x][:-1]
         return lines
 
@@ -72,6 +76,17 @@ class TXT(File):
     def rewrite(self, index, line):
         lines = self.read()
         lines[index - 1] = line
+        self.write(lines)
+    
+    def remove(self, begin, end):
+        lines = self.read()
+        for x in range(begin - 1, end):
+            lines.pop(begin - 1)
+        self.write(lines)
+    
+    def add_to_line(self, index, addition):
+        lines = self.read()
+        lines[index - 1] += addition
         self.write(lines)
 
 class CFG(File):

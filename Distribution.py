@@ -51,7 +51,8 @@ distribution = fl.TXT(os.path.join(cwd, "Input", "distribution.txt"))
 
 # Write contact and distribution information
 print("Writing contact and distribution information...")
-for line, contact in zip([42, 45, 48, 51, 54], cs.contacts):
+ordered_contacts = ["archive", "wiimmfi", "wiiki", "platforms", "email"]
+for line, contact in zip([42, 45, 48, 51, 54], ordered_contacts):
     distribution.add_to_line(line, fl.CNT(os.path.join("Contacts", f"{contact}.cnt")).get_value())
 
 distribution.rewrite(68, f"@NAME\t\t= {name}")
@@ -73,6 +74,10 @@ for x in range(len(definition)):
         information = definition[x].split()
         file = fl.File(os.path.join(cwd, "Input", information[2] + ".szs"))
         track = tr.Track(information[0], information[1])
+        if track.information:
+            print(f"{file.filename} is {track.information}.")
+        else:
+            print(f"{file.filename} is an unknown track.")
         distribution.rewrite(191 + x, str(track))
         if track.information is None:
             file.move(os.path.join(cwd, "Output", file.filename))

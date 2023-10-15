@@ -24,7 +24,7 @@ filenames = {"beginner_course", "farm_course", \
              "skate_battle", "casino_battle", \
              "sand_battle", "old_battle4_sfc", \
              "old_battle3_gba", "old_matenro_64", \
-             "old_cookieland_gc", "old_house_ds"}
+             "old_CookieLand_gc", "old_House_ds"}
 
 slots = {"1.1": 8, "1.2": 1, "1.3": 2, "1.4": 4, \
          "2.1": 0, "2.2": 5, "2.3": 6, "2.4": 7, \

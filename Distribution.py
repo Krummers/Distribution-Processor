@@ -75,9 +75,9 @@ for x in range(len(definition)):
         file = fl.File(os.path.join(cwd, "Input", information[2] + ".szs"))
         track = tr.Track(information[0], information[1])
         if track.information:
-            print(f"{file.filename} is {track.information}.")
+            print(f"{file.filename} \t\t is {track.information}.")
         else:
-            print(f"{file.filename} is an unknown track.")
+            print(f"{file.filename} \t\t is an unknown track.")
         distribution.rewrite(191 + x, str(track))
         if track.information is None:
             file.move(os.path.join(cwd, "Output", file.filename))

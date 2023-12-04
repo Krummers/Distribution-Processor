@@ -1,7 +1,6 @@
 import os
 import subprocess as sp
 import shutil as sh
-import platform as pf
 
 import Modules.constants as cs
 import Modules.file as fl
@@ -33,12 +32,33 @@ else:
 
 url = str(input(f"Enter the Wiiki article URL of {name}: "))
 
+# Define process mode
+for mode, x in zip(cs.modes, range(len(cs.modes))):
+    print(f"{chr(x + 65)}. {mode}")
+
+while True:
+    mode = str(input("How should the files be processed? (Enter the corresponding letter): ")).upper()
+    
+    match mode:
+        case "A":
+            mode = "all-files"
+            break
+        case "B":
+            mode = "my-stuff"
+            break
+        case "C":
+            mode = "le-code"
+            break
+        case _:
+            print("This is not an option. Please try again.")
+
 # Remove non-SZS files
-for file in os.listdir(os.path.join(cwd, "Input")):
-    file = fl.File(os.path.join(cwd, "Input", file))
-    if not file.filename.endswith("szs") or not file.filename[:-4] in cs.filenames:
-        if not file.filename.endswith(".gitignore"):
-            file.delete()
+if mode == "my-stuff":
+    for file in os.listdir(os.path.join(cwd, "Input")):
+        file = fl.File(os.path.join(cwd, "Input", file))
+        if not file.filename.endswith("szs") or not file.filename[:-4] in cs.filenames:
+            if not file.filename.endswith(".gitignore"):
+                file.delete()
 
 # Compress files and create distribution.txt
 print("Compressing files...")
@@ -75,9 +95,9 @@ for x in range(len(definition)):
         file = fl.File(os.path.join(cwd, "Input", information[2] + ".szs"))
         track = tr.Track(information[0], information[1])
         if track.information:
-            print(f"{file.filename} \t\t is {track.information}.")
+            print(f"{file.filename: <30} is {track.information}.")
         else:
-            print(f"{file.filename} \t\t is an unknown track.")
+            print(f"{file.filename: <30} is an unknown track.")
         distribution.rewrite(191 + x, str(track))
         if track.information is None:
             file.move(os.path.join(cwd, "Output", file.filename))

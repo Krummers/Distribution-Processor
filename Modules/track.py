@@ -9,10 +9,11 @@ cwd = os.getcwd()
 
 class Track(object):
     
-    def __init__(self, sha1, cup):
+    def __init__(self, sha1, cup, filename = None):
         self.sha1 = sha1
         self.slot = cs.slots[cup]
         self.cup = cup
+        self.filename = filename
         self.information = Track.sha1_information(sha1)
         self.track = "A" not in cup
         self.boost = 0
@@ -44,7 +45,7 @@ class Track(object):
         string += str(self.sha1)
         string += "\t" + str(self.slot)
         string += "\t" + str(self.cup)
-        string += "\t\t" + str(self.information)
+        string += "\t\t" + (str(self.information) if self.information is not None else self.filename)
         return string
     
     def __repr__(self):

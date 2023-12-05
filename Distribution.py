@@ -1,6 +1,5 @@
 import os
 import subprocess as sp
-import shutil as sh
 
 import Modules.constants as cs
 import Modules.file as fl
@@ -93,7 +92,7 @@ for x in range(len(definition)):
     if definition[x] != "\n" and definition[x] != "":
         information = definition[x].split()
         file = fl.File(os.path.join(cwd, "Input", information[2] + ".szs"))
-        track = tr.Track(information[0], information[1])
+        track = tr.Track(information[0], information[1], information[2])
         if track.information:
             print(f"{file.filename: <30} is {track.information}.")
         else:
@@ -114,3 +113,4 @@ gitignore.move_down(["Input"])
 gitignore.rename(".gitignore")
 
 input("All done!")
+sp.run(["start", "notepad++", f"\"{distribution.path}\""])

@@ -5,5 +5,6 @@ Automatically creates definition files for Mario Kart Wii custom track distribut
 * [beautifulsoup4](https://pypi.org/project/beautifulsoup4/)
 
 ### Usage
-1. Put the track files next to the script files.
+1. Put the track files in ```Input```.
 2. Start the script and follow the instructions.
+3. Process the distribution further with the new files found in ```Output```.

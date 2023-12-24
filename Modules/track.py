@@ -9,22 +9,25 @@ cwd = os.getcwd()
 
 class Track(object):
     
-    def __init__(self, sha1, cup, filename = None):
+    def __init__(self, sha1, cup, flags = "---------", lecode = "------", \
+                 slot = None, information = None, filename = None):
         self.sha1 = sha1
         self.slot = cs.slots[cup]
-        self.cup = cup
+        self.cup = Slot(cup)
         self.filename = filename
         self.information = Track.sha1_information(sha1)
         self.track = "A" not in cup
-        self.boost = 0
-        self.new = 0
-        self.again = 0
-        self.update = 0
-        self.fill = 0
+        self.boost = False
+        self.new = False
+        self.again = False
+        self.update = False
+        self.fill = False
         self.multiplayer = False
         self.title = False
         self.hidden = False
-        self.original = True
+        self.original = False
+        
+        self.set_flag(flags)
     
     def __str__(self):
         string = ""
@@ -51,6 +54,21 @@ class Track(object):
     def __repr__(self):
         return str(self.information)
     
+    def set_flag(self, flags):
+        flag = [indicator for indicator in flags]
+        self.boost = True if flag[0] == "B" else False
+        self.new = True if flag[1] == "N" else False
+        self.again = True if flag[2] == "A" else False
+        self.update = True if flag[3] == "U" else False
+        self.fill = True if flag[4] == "F" else False
+        self.multiplayer = True if flag[5] == "d" else False
+        self.title = True if flag[6] == "t" else False
+        self.hidden = True if flag[7] == "h" else False
+        self.original = True if flag[8] == "o" else False
+    
+    def set_lecode(self, lecode):
+        pass
+    
     def sha1_information(sha1, editors = False, comments = False):
         check = fl.TXT(os.path.join(cwd, "check.txt"))
         ft.download(f"https://ct.wiimm.de/?s={sha1}", check.path)
@@ -69,3 +87,74 @@ class Track(object):
             return information
         except:
             return None
+
+class Slot(object):
+    
+    def __init__(self, cup):
+        information = cup.split(".")
+        self.cup = int(information[0]) if "A" not in information[0] else int(information[0][1:])
+        self.slot = int(information[1])
+        self.arena = "A" in information[0]
+    
+    def __str__(self):
+        string = ""
+        string += "A" if self.arena else ""
+        string += str(self.cup)
+        string += "."
+        string += str(self.slot)
+        return string
+    
+    def __repr__(self):
+        return str(self)
+    
+    def __lt__(self, other):
+        if not isinstance(other, Slot):
+            raise TypeError("'other' must be a Slot object")
+        if self.arena and not other.arena:
+            return True
+        elif not self.arena and other.arena:
+            return False
+        elif self.cup < other.cup:
+            return True
+        elif self.cup > other.cup:
+            return False
+        elif self.slot < other.slot:
+            return True
+        else:
+            return False
+    
+    def __le__(self, other):
+        if not isinstance(other, Slot):
+            raise TypeError("'other' must be a Slot object")
+        return self < other or self == other
+    
+    def __eq__(self, other):
+        if not isinstance(other, Slot):
+            raise TypeError("'other' must be a Slot object")
+        return self.cup == other.cup and self.slot == other.slot and self.arena == other.arena
+    
+    def __ne__(self, other):
+        if not isinstance(other, Slot):
+            raise TypeError("'other' must be a Slot object")
+        return self.cup != other.cup or self.slot != other.slot or self.arena != other.arena
+    
+    def __ge__(self, other):
+        if not isinstance(other, Slot):
+            raise TypeError("'other' must be a Slot object")
+        return self > other or self == other
+    
+    def __gt__(self, other):
+        if not isinstance(other, Slot):
+            raise TypeError("'other' must be a Slot object")
+        if not self.arena and other.arena:
+            return True
+        elif self.arena and not other.arena:
+            return False
+        elif self.cup > other.cup:
+            return True
+        elif self.cup < other.cup:
+            return False
+        elif self.slot > other.slot:
+            return True
+        else:
+            return False

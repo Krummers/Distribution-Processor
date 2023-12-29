@@ -42,6 +42,9 @@ class Distribution(object):
                 track = tr.Track(sha1, cup, flags, lecode, slot, information)
                 self.tracks.append(track)
     
+    def __repr__(self):
+        return f"{self.name} {self.version} ({self.author})"
+    
     def sort_tracks(self):
         self.tracks = sorted(self.tracks, key = lambda track:track.cup)
         return self.tracks

@@ -2,6 +2,7 @@ import os
 import subprocess as sp
 
 import Modules.constants as cs
+import Modules.distribution as ds
 import Modules.file as fl
 import Modules.functions as ft
 import Modules.track as tr
@@ -17,9 +18,34 @@ author = str(input(f"Enter the author(s) of {name}: "))
 date = str(input(f"Enter the release date of {name}: "))
 tag = str(input(f"Enter the distribution tag of {name}: "))
 
-v = ft.question(f"Does {name} have a predecessor?")
-if v:
-    previous_uuid = str(input(f"Enter the UUID of the previous version of {name}: "))
+archive = os.path.join(cwd, "Archive")
+
+predecessors = []
+
+for file in os.listdir(archive):
+    if file.startswith(name):
+        file = os.path.basename(file)
+        file = file.replace(f"{name} ", "")
+        file = file.replace(".txt", "")
+        predecessors.append(file)
+
+if predecessors:
+    for x in range(len(predecessors)):
+        print(chr(x + 65), ". ", predecessors[x], sep = "")
+    
+    while True:
+        choice = str(input("Which version is the predecessor? (Enter the corresponding option): "))
+        
+        if len(choice) != 1:
+            print("This is not an option. Please try again.")
+        elif choice.isalpha() and ord(choice.upper()) - 65 in range(len(predecessors)):
+            choice = ord(choice.upper()) - 65
+            file = os.path.join(archive, f"{name} {predecessors[choice]}.txt")
+            distribution = ds.Distribution(file)
+            previous_uuid = distribution.uuid
+            break
+        else:
+            print("This is not an option. Please try again.")
 else:
     previous_uuid = ""
 

@@ -8,6 +8,7 @@ import Modules.functions as ft
 import Modules.track as tr
 
 cwd = os.getcwd()
+archive = os.path.join(cwd, "Archive")
 contacts = fl.Folder(os.path.join(cwd, "Contacts"))
 settings = fl.Folder(os.path.join(cwd, "Settings"))
 
@@ -17,8 +18,6 @@ version = str(input(f"Enter the version number of {name}: "))
 author = str(input(f"Enter the author(s) of {name}: "))
 date = str(input(f"Enter the release date of {name}: "))
 tag = str(input(f"Enter the distribution tag of {name}: "))
-
-archive = os.path.join(cwd, "Archive")
 
 predecessors = []
 
@@ -47,7 +46,11 @@ if predecessors:
         else:
             print("This is not an option. Please try again.")
 else:
-    previous_uuid = ""
+    v = ft.question(f"Does {name} have a predecessor?")
+    if v:
+        previous_uuid = str(input(f"Enter the UUID of the previous version of {name}: "))
+    else:
+        previous_uuid = ""
 
 v = ft.question(f"Does {name} have a Wiimmfi region?")
 if v:

@@ -15,7 +15,7 @@ class Track(object):
         self.slot = cs.slots[cup]
         self.cup = Slot(cup)
         self.filename = filename
-        self.information = Track.sha1_information(sha1)
+        self.information = information if information is not None else Track.sha1_information(sha1)
         self.track = "A" not in cup
         self.boost = False
         self.new = False

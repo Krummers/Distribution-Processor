@@ -17,7 +17,6 @@ name = str(input("Enter the name of the distribution: "))
 version = str(input(f"Enter the version number of {name}: "))
 author = str(input(f"Enter the author(s) of {name}: "))
 date = str(input(f"Enter the release date of {name}: "))
-tag = str(input(f"Enter the distribution tag of {name}: "))
 
 predecessors = []
 
@@ -40,8 +39,8 @@ if predecessors:
         elif choice.isalpha() and ord(choice.upper()) - 65 in range(len(predecessors)):
             choice = ord(choice.upper()) - 65
             file = os.path.join(archive, f"{name} {predecessors[choice]}.txt")
-            distribution = ds.Distribution(file)
-            previous_uuid = distribution.uuid
+            predecessor = ds.Distribution(file, load_tracks = False)
+            previous_uuid = predecessor.uuid
             break
         else:
             print("This is not an option. Please try again.")
@@ -80,13 +79,23 @@ while True:
         case _:
             print("This is not an option. Please try again.")
 
-# Remove non-SZS files
+# Remove non-SZS files and collect rel files
 if mode == "my-stuff":
+    rel = []
     for file in os.listdir(os.path.join(cwd, "Input")):
         file = fl.File(os.path.join(cwd, "Input", file))
-        if not file.filename.endswith("szs") or not file.filename[:-4] in cs.filenames:
-            if not file.filename.endswith(".gitignore"):
+        if file.filename.endswith("rel"):
+            rel.append(fl.REL(file.path))
+            continue
+        if not file.filename.endswith("szs") or not file.filename[:-4].lower() in cs.filenames:
+            if not file.filename.endswith(".gitignore") and not file.filename.endswith(".rel"):
                 file.delete()
+
+# Process rel files
+if rel and all(static == rel[0] for static in rel):
+    tracklist = rel[0].tracklist()
+else: # handle staticR.rel inequality
+    tracklist = {}
 
 # Compress files and create distribution.txt
 print("Compressing files...")
@@ -99,24 +108,24 @@ distribution = fl.TXT(os.path.join(cwd, "Input", "distribution.txt"))
 
 # Write contact and distribution information
 print("Writing contact and distribution information...")
-ordered_contacts = ["archive", "wiimmfi", "wiiki", "platforms", "email"]
-for line, contact in zip([42, 45, 48, 51, 54], ordered_contacts):
+for line, contact in zip(list(range(112, 127, 3)), cs.ordered_contacts):
     distribution.add_to_line(line, fl.CNT(os.path.join("Contacts", f"{contact}.cnt")).get_value())
 
-distribution.rewrite(68, f"@NAME\t\t= {name}")
-distribution.rewrite(69, f"@VERSION\t= {version}")
-distribution.rewrite(70, f"@AUTHORS\t= {author}")
-distribution.rewrite(73, f"@RELEASE-DATE\t= {date}")
-distribution.rewrite(77, f"@REFERENCE-NAME\t= {tag}")
-distribution.rewrite(84, f"@PREDECESSOR\t= {previous_uuid}")
-distribution.rewrite(87, f"@WIIMMFI-REGION\t= {region}")
-distribution.rewrite(89, f"@INFO-URL\t= {url}")
+distribution.rewrite(distribution.find("@NAME"), f"@NAME\t\t= {name}")
+distribution.rewrite(distribution.find("@VERSION"), f"@VERSION\t= {version}")
+distribution.rewrite(distribution.find("@AUTHORS"), f"@AUTHORS\t= {author}")
+distribution.rewrite(distribution.find("@RELEASE-DATE"), f"@RELEASE-DATE\t= {date}")
+distribution.rewrite(distribution.find("@PREDECESSOR"), f"@PREDECESSOR\t= {previous_uuid}")
+distribution.rewrite(distribution.find("@WIIMMFI-REGION"), f"@WIIMMFI-REGION\t= {region}")
+distribution.rewrite(distribution.find("@INFO-URL"), f"@INFO-URL\t= {url}")
 
 # Remove standard SHA1s
-distribution.remove(191, 277)
+begin = distribution.find("bt --------o -o---- 9047f6e9b77c6a44accb46c2237609b80e459fdc")
+end = distribution.find("vs -----d--o -o---- 7142361ab93d3929f62aa715509fc8d1379afbd6")
+distribution.remove(begin, end + 2)
 
 # Enter track information in distribution.txt
-definition = distribution.read()[191 - 1:]
+definition = distribution.read()[distribution.find("# for racing tracks") + 2:]
 for x in range(len(definition)):
     if definition[x] != "\n" and definition[x] != "":
         information = definition[x].split()
@@ -126,9 +135,26 @@ for x in range(len(definition)):
             print(f"{file.filename: <30} is {track.information}.")
         else:
             print(f"{file.filename: <30} is an unknown track.")
-        distribution.rewrite(191 + x, str(track))
+        distribution.rewrite(begin + x, str(track))
         if track.information is None:
             file.move(os.path.join(cwd, "Output", file.filename))
+
+# Compare distribution to predecessor
+print("Checking distribution...")
+distrib = ds.Distribution(os.path.join(cwd, "Input", "distribution.txt"))
+if predecessors:
+    print("Comparing distribution to predecessor...")
+    predecessor.load_tracks()
+    distrib.compare(predecessor)
+else:
+    distrib.check_again()
+
+if tracklist:
+    for x in range(len(distrib.tracks)):
+        distrib.tracks[x].set_cup(tracklist[str(distrib.tracks[x].cup)])
+    distrib.sort_tracks()
+
+distribution.write(str(distrib).split("\n"))
 
 # Clean repository
 distribution.rename(f"{name} {version}.txt")
@@ -141,5 +167,7 @@ fl.Folder(os.path.join(cwd, "Input")).empty()
 gitignore.move_down(["Input"])
 gitignore.rename(".gitignore")
 
-input("All done!")
 os.system(f"start notepad++ \"{distribution.path}\"")
+input("Press enter to move the file into the archive: ")
+distribution.move(os.path.join(cwd, "Archive", distribution.filename))
+input("All done!")

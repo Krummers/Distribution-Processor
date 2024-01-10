@@ -15,7 +15,7 @@ class Track(object):
         self.slot = cs.slots[cup]
         self.cup = Slot(cup)
         self.filename = filename
-        self.information = information if information is not None else Track.sha1_information(sha1)
+        self.information = information
         self.track = "A" not in cup
         self.boost = False
         self.new = False
@@ -26,7 +26,10 @@ class Track(object):
         self.title = False
         self.hidden = False
         self.original = False
+        self.ID = None
+        self.family = None
         
+        self.set_information()
         self.set_flag(flags)
     
     def __str__(self):
@@ -48,11 +51,39 @@ class Track(object):
         string += str(self.sha1)
         string += "\t" + str(self.slot)
         string += "\t" + str(self.cup)
-        string += "\t\t" + (str(self.information) if self.information is not None else self.filename)
+        string += "\t\t" + (str(self.information) if self.information is not None else str(self.filename))
         return string
     
     def __repr__(self):
         return str(self.information)
+    
+    def set_cup(self, cup):
+        self.slot = cs.slots[cup]
+        self.cup = Slot(cup)
+        self.track = "A" not in cup
+    
+    def set_information(self):
+        check = fl.TXT(os.path.join(cwd, "check.txt"))
+        ft.download(f"https://ct.wiimm.de/?s={self.sha1}", check.path)
+        html = check.read()
+        check.delete()
+        try:
+            html = bs("".join(html), "html.parser")
+            information = str(html.find_all("td")[17].contents[0])
+            information = information[:information.find("[") - 1]
+            information = information[:information.find(",,")] + ")"
+            if self.information is None:
+                self.information = information
+        except:
+            self.information = None
+        try:
+            self.family = str(html.find_all("td")[11].contents[0])
+        except:
+            self.family = None
+        try:
+            self.ID = str(html.find_all("td")[10].contents[0])
+        except:
+            self.ID = None
     
     def set_flag(self, flags):
         flag = [indicator for indicator in flags]
@@ -68,6 +99,30 @@ class Track(object):
     
     def set_lecode(self, lecode):
         pass
+    
+    def family(self):
+        check = fl.TXT(os.path.join(cwd, "check.txt"))
+        ft.download(f"https://ct.wiimm.de/?s={self.sha1}", check.path)
+        html = check.read()
+        check.delete()
+        try:
+            html = bs("".join(html), "html.parser")
+            family = str(html.find_all("td")[11].contents[0].contents[0])
+            return family
+        except:
+            return
+    
+    def ID(self):
+        check = fl.TXT(os.path.join(cwd, "check.txt"))
+        ft.download(f"https://ct.wiimm.de/?s={self.sha1}", check.path)
+        html = check.read()
+        check.delete()
+        try:
+            html = bs("".join(html), "html.parser")
+            ID = str(html.find_all("td")[10].contents[0])
+            return ID
+        except:
+            return
     
     def sha1_information(sha1, editors = False, comments = False):
         check = fl.TXT(os.path.join(cwd, "check.txt"))

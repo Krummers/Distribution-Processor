@@ -1,6 +1,7 @@
 import os
 import pickle as pk
 import shutil as sh
+import subprocess as sp
 
 cwd = os.getcwd()
 
@@ -78,6 +79,12 @@ class TXT(File):
         lines[index - 1] = line
         self.write(lines)
     
+    def find(self, string):
+        lines = self.read()
+        for x in range(len(lines)):
+            if lines[x].startswith(string):
+                return x + 1
+    
     def remove(self, begin, end):
         lines = self.read()
         for x in range(begin - 1, end):
@@ -129,6 +136,32 @@ class CFG(File):
             return None
         with open(self.path, "rb") as setting:
             return pk.load(setting)
+
+class REL(File):
+    
+    def tracklist(self):
+        output = sp.run(f"wstrt tracks \"{self.path}\" --no-header", \
+                        capture_output = True).stdout
+        tracks = str(output).split("\\n")[2:-2]
+        tracks = [line.split() for line in tracks]
+        output = sp.run(f"wstrt arenas \"{self.path}\" --no-header", \
+                        capture_output = True).stdout
+        arenas = str(output).split("\\n")[2:-2]
+        arenas = [line.split() for line in arenas]
+        tracklist = {}
+        tracklist |= {tracks[x][2]:tracks[x][1] for x in range(len(tracks))}
+        tracklist |= {"A" + arenas[x][2]:"A" + arenas[x][1] for x in range(len(arenas))}
+        return tracklist
+    
+    def __eq__(self, other):
+        if not isinstance(other, REL):
+            raise TypeError("'other' must be a 'REL' object")
+        return self.tracklist() == other.tracklist()
+    
+    def __neq__(self, other):
+        if not isinstance(other, REL):
+            raise TypeError("'other' must be a 'REL' object")
+        return self.tracklist() != other.tracklist()
 
 class CHC(CFG):
     

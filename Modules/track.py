@@ -146,6 +146,11 @@ class Track(object):
 class Slot(object):
     
     def __init__(self, cup):
+        if cup == "---" or cup == "None":
+            self.cup = 0
+            self.slot = 0
+            self.arena = False
+            return
         information = cup.split(".")
         self.cup = int(information[0]) if "A" not in information[0] else int(information[0][1:])
         self.slot = int(information[1])

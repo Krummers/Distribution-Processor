@@ -80,8 +80,8 @@ while True:
             print("This is not an option. Please try again.")
 
 # Remove non-SZS files and collect rel files
+rel = []
 if mode == "my-stuff":
-    rel = []
     for file in os.listdir(os.path.join(cwd, "Input")):
         file = fl.File(os.path.join(cwd, "Input", file))
         if file.filename.endswith("rel"):

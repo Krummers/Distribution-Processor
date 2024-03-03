@@ -12,7 +12,10 @@ class Track(object):
     def __init__(self, sha1, cup, flags = "---------", lecode = "------", \
                  slot = None, information = None, filename = None):
         self.sha1 = sha1
-        self.slot = cs.slots[cup]
+        try:
+            self.slot = cs.slots[cup]
+        except:
+            self.slot = "---"
         self.cup = Slot(cup)
         self.filename = filename
         self.information = information

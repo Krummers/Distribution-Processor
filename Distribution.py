@@ -76,6 +76,9 @@ while True:
         case "C":
             mode = "le-code"
             break
+        case "D":
+            mode = "pulsar"
+            break
         case _:
             print("This is not an option. Please try again.")
 
@@ -90,6 +93,12 @@ if mode == "my-stuff":
         if not file.filename.endswith("szs") or not file.filename[:-4].lower() in cs.filenames:
             if not file.filename.endswith(".gitignore") and not file.filename.endswith(".rel"):
                 file.delete()
+
+if mode == "pulsar":
+    for file in os.listdir(os.path.join(cwd, "Input")):
+        file = fl.File(os.path.join(cwd, "Input", file))
+        if file.filename.endswith("szs"):
+            file.rename(f"pulsar{file.filename}")
 
 # Process rel files
 if rel and all(static == rel[0] for static in rel):
@@ -130,7 +139,13 @@ for x in range(len(definition)):
     if definition[x] != "\n" and definition[x] != "":
         information = definition[x].split()
         file = fl.File(os.path.join(cwd, "Input", information[2] + ".szs"))
-        track = tr.Track(information[0], information[1], filename = information[2])
+        if mode != "pulsar":
+            track = tr.Track(information[0], information[1], filename = information[2])
+        else:
+            number = int(information[2][6:])
+            cup = f"{number // 4 + 1}.{number % 4 + 1}"
+            pulsar = information[2][6:]
+            track = tr.Track(information[0], cup, filename = pulsar)
         if track.information:
             print(f"{file.filename: <30} is {track.information}.")
         else:
@@ -148,6 +163,9 @@ if predecessors:
     distrib.compare(predecessor)
 else:
     distrib.check_again()
+
+if mode == "pulsar":
+    distrib.sort_tracks()
 
 if tracklist:
     for x in range(len(distrib.tracks)):

@@ -1,7 +1,7 @@
 contacts = ["archive", "email", "platforms", "wiiki", "wiimmfi"]
 ordered_contacts = ["archive", "wiimmfi", "wiiki", "platforms", "email"]
 
-modes = ["all-files", "my-stuff", "le-code"]
+modes = ["all-files", "my-stuff", "le-code", "pulsar"]
 
 binaries = ["yes", "y", "no", "n"]
 

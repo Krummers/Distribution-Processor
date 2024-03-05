@@ -143,9 +143,9 @@ for x in range(len(definition)):
             track = tr.Track(information[0], information[1], filename = information[2])
         else:
             number = int(information[2][6:])
-            cup = f"{number // 4 + 1}.{number % 4 + 1}"
+            cup = f"{number // 4 + 8}.{number % 4 + 1}"
             pulsar = information[2][6:]
-            track = tr.Track(information[0], cup, filename = pulsar)
+            track = tr.Track(information[0], cup, slot = number + 256, filename = pulsar)
         if track.information:
             print(f"{file.filename: <30} is {track.information}.")
         else:

@@ -13,7 +13,7 @@ class Track(object):
                  slot = None, information = None, filename = None):
         self.sha1 = sha1
         try:
-            self.slot = cs.slots[cup]
+            self.slot = slot if slot else cs.slots[cup]
         except:
             self.slot = "---"
         self.cup = Slot(cup)

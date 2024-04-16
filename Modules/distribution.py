@@ -1,5 +1,6 @@
 import os
 
+import Modules.entry as et
 import Modules.file as fl
 import Modules.track as tr
 
@@ -28,7 +29,7 @@ class Distribution(object):
         self.comment = bool(int(Distribution.find_information("@VIEW-COMMENT", information)))
         self.new = bool(int(Distribution.find_information("@ENABLE-NEW", information)))
         self.again = bool(int(Distribution.find_information("@ENABLE-AGAIN", information)))
-        self.fill = bool(int(Distribution.find_information("@ENABLE-FILL", information)))
+        self.filler = bool(int(Distribution.find_information("@ENABLE-FILL", information)))
         self.update = bool(int(Distribution.find_information("@ENABLE-UPDATE", information)))
         self.boost = bool(int(Distribution.find_information("@ENABLE-BOOST", information)))
         self.uuid = Distribution.find_information("@UUID", information)
@@ -113,7 +114,7 @@ class Distribution(object):
         string += "\n".join(clean[71:78]) + "\n"
         string += f"@ENABLE-NEW\t= {int(self.new)}\n"
         string += f"@ENABLE-AGAIN\t= {int(self.again)}\n"
-        string += f"@ENABLE-FILL\t= {int(self.fill)}\n"
+        string += f"@ENABLE-FILL\t= {int(self.filler)}\n"
         string += f"@ENABLE-UPDATE\t= {int(self.update)}\n"
         string += "\n".join(clean[82:87]) + "\n"
         string += f"@ENABLE-BOOST\t= {int(self.boost)}\n"
@@ -169,6 +170,27 @@ class Distribution(object):
                 information = line[6]
                 track = tr.Track(sha1, cup, flags, lecode, slot, information)
                 self.tracks.append(track)
+    
+    def families_IDs(self):
+        families = set()
+        IDs = set()
+        information = self.file.read()
+        begin = self.file.find("# for racing tracks")
+        definition = information[begin + 2:]
+        
+        for entry in definition:
+            if entry == "\n" or entry == "":
+                continue
+            entry = entry.split()
+            sha1 = entry[3]
+            slot = entry[5]
+            entry = et.Entry(sha1, slot)
+            if entry.sha1_known():
+                print(f"Loaded {entry.information()}.")
+                families.add(entry.family())
+                IDs.add(entry.ID())
+        
+        return families, IDs
     
     def find_information(variable, information):
         for line in information:

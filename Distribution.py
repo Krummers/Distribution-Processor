@@ -3,9 +3,9 @@ import subprocess as sp
 
 import Modules.constants as cs
 import Modules.distribution as ds
+import Modules.entry as et
 import Modules.file as fl
 import Modules.functions as ft
-import Modules.track as tr
 
 cwd = os.getcwd()
 archive = os.path.join(cwd, "Archive")
@@ -16,7 +16,7 @@ settings = fl.Folder(os.path.join(cwd, "Settings"))
 name = str(input("Enter the name of the distribution: "))
 version = str(input(f"Enter the version number of {name}: "))
 author = str(input(f"Enter the author(s) of {name}: "))
-date = str(input(f"Enter the release date of {name}: "))
+date = str(input(f"Enter the release date of {version} of {name}: "))
 
 predecessors = []
 
@@ -64,52 +64,64 @@ for mode, x in zip(cs.modes, range(len(cs.modes))):
     print(f"{chr(x + 65)}. {mode}")
 
 while True:
-    mode = str(input("How should the files be processed? (Enter the corresponding letter): ")).upper()
-    
-    match mode:
-        case "A":
-            mode = "all-files"
+        choice = str(input("What engine does the distribution use? (Enter the corresponding option): ")).upper()
+        
+        if len(choice) != 1:
+            print("This is not an option. Please try again.")
+        elif choice.isalpha() and ord(choice.upper()) - 65 in range(len(cs.modes)):
+            choice = ord(choice.upper()) - 65
+            mode = cs.modes[choice]
             break
-        case "B":
-            mode = "my-stuff"
-            break
-        case "C":
-            mode = "le-code"
-            break
-        case "D":
-            mode = "pulsar"
-            break
-        case _:
+        else:
             print("This is not an option. Please try again.")
 
-# Remove non-SZS files and collect rel files
+compress = ft.question("Compress all SZS files?")
+
+# Collect REL files and generate track listing if they exist
 rel = []
-if mode == "my-stuff":
-    for file in os.listdir(os.path.join(cwd, "Input")):
-        file = fl.File(os.path.join(cwd, "Input", file))
-        if file.filename.endswith("rel"):
-            rel.append(fl.REL(file.path))
-            continue
-        if not file.filename.endswith("szs") or not file.filename[:-4].lower() in cs.filenames:
-            if not file.filename.endswith(".gitignore") and not file.filename.endswith(".rel"):
-                file.delete()
-
-if mode == "pulsar":
-    for file in os.listdir(os.path.join(cwd, "Input")):
-        file = fl.File(os.path.join(cwd, "Input", file))
-        if file.filename.endswith("szs"):
-            file.rename(f"pulsar{file.filename}")
-
-# Process rel files
+for file in os.listdir(os.path.join(cwd, "Input")):
+    file = fl.File(os.path.join(cwd, "Input", file))
+    if file.filename.endswith("rel"):
+        rel.append(fl.REL(file.path))
 if rel and all(static == rel[0] for static in rel):
     tracklist = rel[0].tracklist()
-else: # handle staticR.rel inequality
-    tracklist = {}
+else:
+    tracklist = cs.tracklist
+
+if mode == "Mario Kart Wii":
+    # Rename all track files to "*tmp.szs" to avoid renaming issues
+    print("Renaming regular files...")
+    for file in os.listdir(os.path.join(cwd, "Input")):
+        file = fl.File(os.path.join(cwd, "Input", file))
+        if file.filename.endswith("szs") and file.filename[:-4].lower() in cs.filenames:
+            file.rename(file.filename[:-4] + "tmp.szs")
+    
+    # Rename all track files to their new locations
+    for file in os.listdir(os.path.join(cwd, "Input")):
+        file = fl.File(os.path.join(cwd, "Input", file))
+        if file.filename.endswith("szs") and file.filename[:-7].lower() in cs.filenames:
+            old = cs.fcups[file.filename[:-7]]
+            new = cs.cfilenames[tracklist[old]]
+            file.rename(f"{new}.szs")
+
+# Rename SZS files for proper sorting
+if mode == "Pulsar":
+    print("Renaming custom files...")
+    for file in os.listdir(os.path.join(cwd, "Input")):
+        file = fl.File(os.path.join(cwd, "Input", file))
+        if file.filename.endswith("szs") and file.filename[:-4].isnumeric():
+            track = int(file.filename[:-4])
+            # 4 tracks per cup | Pulsar starts 8 cups ahead | Cup 0 does not exist
+            cup = track // 4 + 8 + 1
+            # 4 tracks per cup | Track 0 does not exist
+            slot = track % 4 + 1
+            file.rename(f"{cup}.{slot}.szs")
 
 # Compress files and create distribution.txt
-print("Compressing files...")
 os.chdir(os.path.join(cwd, "Input"))
-sp.run(["wszst", "compress", "--szs", "--rmai", "*.szs", "-o"])
+if compress:
+    print("Compressing files...")
+    sp.run(["wszst", "compress", "--szs", "--rmai", "*.szs", "-o"])
 sp.run(["wszst", "distrib", "."])
 os.chdir(cwd)
 
@@ -133,48 +145,58 @@ begin = distribution.find("bt --------o -o---- 9047f6e9b77c6a44accb46c2237609b80
 end = distribution.find("vs -----d--o -o---- 7142361ab93d3929f62aa715509fc8d1379afbd6")
 distribution.remove(begin, end + 2)
 
-# Enter track information in distribution.txt
+# Prepare ID and family sets for distribution and predecessor
+if predecessors:
+    print("Loading predecessor...")
+    old_families, old_IDs = predecessor.families_IDs()
+else:
+    old_IDs = set(x for x in range(100_000))
+    old_families = set(x for x in range(100_000))
+new_IDs = set()
+
+# Collect and fill out track information in distribution file
+print("Processing distribution...")
 definition = distribution.read()[distribution.find("# for racing tracks") + 2:]
 for x in range(len(definition)):
     if definition[x] != "\n" and definition[x] != "":
+        # Split collected information
         information = definition[x].split()
-        file = fl.File(os.path.join(cwd, "Input", information[2] + ".szs"))
-        if mode != "pulsar":
-            track = tr.Track(information[0], information[1], filename = information[2])
+        sha1 = information[0]
+        try:
+            filename = information[2]
+        except IndexError:
+            filename = information[1]
+        
+        # Collect and write information, and move file accordingly
+        file = fl.File(os.path.join(cwd, "Input", f"{filename}.szs"))
+        entry = et.Entry(sha1, filename)
+        if entry.sha1_known():
+            entry.set_attributes(old_IDs, old_families, new_IDs)
+            new_IDs.add(entry.ID())
+            
+            # Enable new, again and update mode if such a track is present
+            if entry.new == "N":
+                distribution.new = True
+                distribution.rewrite(distribution.find("@ENABLE-NEW"), "@ENABLE-NEW\t= 1")
+            if entry.again == "A":
+                distribution.again = True
+                distribution.rewrite(distribution.find("@ENABLE-AGAIN"), "@ENABLE-AGAIN\t= 1")
+            if entry.filler == "F":
+                distribution.filler = True
+                distribution.rewrite(distribution.find("@ENABLE-FILL"), "@ENABLE-FILL\t= 1")
+            if entry.update == "U":
+                distribution.update = True
+                distribution.rewrite(distribution.find("@ENABLE-UPDATE"), "@ENABLE-UPDATE\t= 1")
+            
+            print(f"{file.filename: <30} is {entry.information()}.")
+            file.delete()
         else:
-            number = int(information[2][6:])
-            cup = f"{number // 4 + 8 + 1}.{number % 4 + 1}"
-            pulsar = information[2][6:]
-            track = tr.Track(information[0], cup, slot = number + 256, filename = pulsar)
-        if track.information:
-            print(f"{file.filename: <30} is {track.information}.")
-        else:
-            print(f"{file.filename: <30} is an unknown track.")
-        distribution.rewrite(begin + x, str(track))
-        if track.information is None:
+            print(f"{file.filename: <30} is unknown.")
             file.move(os.path.join(cwd, "Output", file.filename))
-
-# Compare distribution to predecessor
-print("Checking distribution...")
-distrib = ds.Distribution(os.path.join(cwd, "Input", "distribution.txt"))
-if predecessors:
-    print("Comparing distribution to predecessor...")
-    predecessor.load_tracks()
-    distrib.compare(predecessor)
-else:
-    distrib.check_again()
-
-if mode == "pulsar":
-    distrib.sort_tracks()
-
-if tracklist:
-    for x in range(len(distrib.tracks)):
-        distrib.tracks[x].set_cup(tracklist[str(distrib.tracks[x].cup)])
-    distrib.sort_tracks()
-
-distribution.write(str(distrib).split("\n"))
+        distribution.rewrite(begin + x, str(entry))
 
 # Clean repository
+print("Cleaning repository...")
 distribution.rename(f"{name} {version}.txt")
 distribution.move(os.path.join(cwd, "Output", distribution.filename))
 
@@ -185,6 +207,8 @@ fl.Folder(os.path.join(cwd, "Input")).empty()
 gitignore.move_down(["Input"])
 gitignore.rename(".gitignore")
 
+if predecessors:
+    os.system(f"start notepad++ \"{predecessor.file.path}\"")
 os.system(f"start notepad++ \"{distribution.path}\"")
 input("Press enter to move the file into the archive: ")
 distribution.move(os.path.join(cwd, "Archive", distribution.filename))

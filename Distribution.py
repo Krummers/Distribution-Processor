@@ -121,7 +121,7 @@ if mode == "Pulsar":
 os.chdir(os.path.join(cwd, "Input"))
 if compress:
     print("Compressing files...")
-    sp.run(["wszst", "compress", "--szs", "--rmai", "*.szs", "-o"])
+    sp.run(["wszst", "compress", "--szs", "--norm", "*.szs", "-o"])
 sp.run(["wszst", "distrib", "."])
 os.chdir(cwd)
 

@@ -51,6 +51,10 @@ else:
     else:
         previous_uuid = ""
 
+# Open predecessor before continuing
+if predecessors:
+    os.system(f"start notepad++ \"{predecessor.file.path}\"")
+
 v = ft.question(f"Does {name} have a Wiimmfi region?")
 if v:
     region = str(input(f"Enter the region number of {name}: "))
@@ -207,8 +211,6 @@ fl.Folder(os.path.join(cwd, "Input")).empty()
 gitignore.move_down(["Input"])
 gitignore.rename(".gitignore")
 
-if predecessors:
-    os.system(f"start notepad++ \"{predecessor.file.path}\"")
 os.system(f"start notepad++ \"{distribution.path}\"")
 input("Press enter to move the file into the archive: ")
 distribution.move(os.path.join(cwd, "Archive", distribution.filename))

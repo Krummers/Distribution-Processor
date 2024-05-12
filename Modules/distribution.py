@@ -183,8 +183,7 @@ class Distribution(object):
                 continue
             entry = entry.split()
             sha1 = entry[3]
-            slot = entry[5]
-            entry = et.Entry(sha1, slot)
+            entry = et.Entry(sha1, "100.0") # Filename is not cared for here
             if entry.sha1_known():
                 print(f"Loaded {entry.information()}.")
                 families.add(entry.family())

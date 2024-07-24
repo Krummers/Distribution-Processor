@@ -24,11 +24,18 @@ class Entry(object):
         # Define slot number
         if self.filename in cs.filenames:
             self.slot = cs.slots[cs.fcups[self.filename]]
+            self._d = "-"
+        elif self.filename.endswith("_d"):
+            self.filename = self.filename[:-2]
+            if self.filename in cs.filenames:
+                self.slot = cs.slots[cs.fcups[self.filename]]
+            self._d = "d"
         else:
             # Calculate slot location
             x, y = self.filename.split(".")
             x, y = int(x), int(y)
             self.slot = 256 + 4 * (x - 9) + (y - 1)
+            self._d = "-"
         
         # Define cup location
         if self.filename in cs.filenames:
@@ -36,13 +43,12 @@ class Entry(object):
         else:
             self.cup = self.filename
         
-        # Set empty values        
+        # Set remaining empty values        
         self.boost = "-"
         self.new = "-"
         self.again = "-"
         self.update = "-"
         self.filler = "-"
-        self._d = "-"
         self.title = "-"
         self.hidden = "-"
         self.original = "-"
@@ -165,9 +171,6 @@ class Entry(object):
         
         # Determine if track is a filler
         self.filler = "-"
-        
-        # Determine if track is a multiplayer file
-        self._d = "d" if information["is_d"] == "true" else "-"
         
         # Determine if track is only a title
         self.title = "-"

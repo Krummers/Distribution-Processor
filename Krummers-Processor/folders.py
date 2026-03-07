@@ -7,7 +7,7 @@ def get_folder(name: str) -> fl.Folder:
     return folder
 
 def generate_folders() -> None:
-    for folder in ["Input", "Output"]:
+    for folder in ["Archive", "Input", "Output"]:
         folder = get_folder(folder)
         if not bool(folder):
             os.mkdir(folder.path)

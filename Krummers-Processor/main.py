@@ -1,9 +1,8 @@
 import script_utilities.functions as ft
 
-import create
 import folders as fd
-import generate
-import delete
+import process
+import upload
 
 import Modules.enumerables as eb
 
@@ -18,12 +17,10 @@ def main() -> None:
                                      display)
         
         match action.name:
-            case "Create":
-                create.main()
-            case "Generate":
-                generate.main()
-            case "Delete":
-                delete.main()
+            case "Process":
+                process.main()
+            case "Upload":
+                upload.main()
             case "Exit":
                 return
 

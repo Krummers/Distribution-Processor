@@ -1,5 +1,6 @@
 import json as js
 import os
+import pathvalidate as pv
 import script_utilities.file as fl
 import script_utilities.functions as ft
 import subprocess as sp
@@ -10,12 +11,29 @@ archive_folder = fd.get_folder("Archive")
 input_folder = fd.get_folder("Input")
 output_folder = fd.get_folder("Output")
 
-def collect_information() -> tuple[str]:
-    name = str(input("Distribution name: "))
-    version = str(input("Distribution version: "))
-    author = str(input("Distribution author(s): "))
+def collect_information() -> dict[str, str]:
+    name = str(input("What is the distribution name? "))
+    version = str(input("What is the distribution version? "))
+    author = str(input("Who are the distribution author(s)? "))
     
-    return name, version, author
+    filename = f"{name} {version}.txt"
+    
+    while True:
+        try:
+            pv.validate_filename(filename)
+        except pv.ValidationError:
+            print(f"The name '{filename}' is not valid as a filename.")
+            filename = str(input("What should be the filename for the track listing be? "))
+            filename += ".txt"
+        else:
+            break
+    
+    distribution_information = dict()
+    distribution_information["name"] = name
+    distribution_information["version"] = version
+    distribution_information["author"] = author
+    distribution_information["filename"] = filename
+    return distribution_information
 
 def compress_files() -> None:
     os.chdir(input_folder.path)
@@ -116,24 +134,24 @@ def create_track_list(mode: str) -> None:
     
     return tracklist
 
-def move_tracklist(tracklist: fl.File, name: str, version: str) -> None:
+def store_information(tracklist: fl.File, distribution_information: dict[str, str]) -> None:
+    filename = distribution_information["filename"]
     tracklist.move(os.path.join(archive_folder.path, tracklist.filename + tracklist.extension))
-    tracklist.rename(f"{name} {version}{tracklist.extension}")
-
-def clear_input_output() -> None:
-    pass
+    tracklist.rename(filename)
+    
+    del distribution_information["filename"]
+    pkl = fl.PKL(os.path.join(archive_folder.path, filename[-3] + "pkl"))
+    pkl.set_value(distribution_information)
 
 def main() -> None:
-    name, version, author = collect_information()
+    distribution_information = collect_information()
     compress = ft.question("Compress the files?")
     
     if compress:
         compress_files()
     
     tracklist = create_track_list("Pulsar") # ct engine mode is currently Pulsar by default
-    move_tracklist(tracklist, name, version)
-    
-    clear_input_output()
+    store_information(tracklist, distribution_information)
 
 if __name__ == "__main__":
     main()

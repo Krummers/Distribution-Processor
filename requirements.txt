@@ -1,2 +1,3 @@
+pathvalidate
 script-utilities
 wiiki-editor

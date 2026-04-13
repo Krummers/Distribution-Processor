@@ -3,6 +3,7 @@ import script_utilities.functions as ft
 import folders as fd
 import process
 import upload
+import clear
 
 import Modules.enumerables as eb
 
@@ -21,6 +22,8 @@ def main() -> None:
                 process.main()
             case "Upload":
                 upload.main()
+            case "Clear":
+                clear.main()
             case "Exit":
                 return
 

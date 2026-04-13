@@ -12,9 +12,9 @@ input_folder = fd.get_folder("Input")
 output_folder = fd.get_folder("Output")
 
 def collect_information() -> dict[str, str]:
-    name = str(input("What is the distribution name? "))
-    version = str(input("What is the distribution version? "))
-    author = str(input("Who are the distribution author(s)? "))
+    name = str(input("Enter the name of the distribution: "))
+    version = str(input("Enter the version of the distribution: "))
+    author = str(input("Enter the author(s) of the distribution: "))
     
     filename = f"{name} {version}.txt"
     
@@ -23,7 +23,7 @@ def collect_information() -> dict[str, str]:
             pv.validate_filename(filename)
         except pv.ValidationError:
             print(f"The name '{filename}' is not valid as a filename.")
-            filename = str(input("What should be the filename for the track listing be? "))
+            filename = str(input("Enter the filename for the track listing: "))
             filename += ".txt"
         else:
             break
@@ -102,13 +102,13 @@ def create_track_list(mode: str) -> None:
     for file in ordered_files:
         file = fl.File(os.path.join(input_folder.path, file))
         
-        track = int(file.filename)
+        track = int(file.filename[:-4])
         # 4 tracks per cup | Pulsar starts 8 cups ahead | Cup 0 does not exist
         cup = track // 4 + 8 + 1
         # 4 tracks per cup | Track 0 does not exist
         slot = track % 4 + 1
         # file.rename(f"{cup}.{slot}.szs")
-        result = sp.check_output(["wszst", "sha1", f"Input/{file.filename + file.extension}"])
+        result = sp.check_output(["wszst", "sha1", f"Input/{file.filename}"])
         sha1 = result.split()[0].decode()
         
         json = fl.File(os.path.join(output_folder.path, f"{track}.json"))
@@ -118,7 +118,7 @@ def create_track_list(mode: str) -> None:
         if not information:
             print(f"Track with SHA1 {sha1} is unknown.")
             tracklist.append(sha1)
-            file.move(os.path.join(output_folder.path, file.filename + file.extension))
+            file.move(os.path.join(output_folder.path, file.filename))
             json.delete()
             continue
         
@@ -136,11 +136,11 @@ def create_track_list(mode: str) -> None:
 
 def store_information(tracklist: fl.File, distribution_information: dict[str, str]) -> None:
     filename = distribution_information["filename"]
-    tracklist.move(os.path.join(archive_folder.path, tracklist.filename + tracklist.extension))
+    tracklist.move(os.path.join(archive_folder.path, tracklist.filename))
     tracklist.rename(filename)
     
     del distribution_information["filename"]
-    pkl = fl.PKL(os.path.join(archive_folder.path, filename[-3] + "pkl"))
+    pkl = fl.PKL(os.path.join(archive_folder.path, filename[:-3] + "pkl"))
     pkl.set_value(distribution_information)
 
 def main() -> None:

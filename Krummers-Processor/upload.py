@@ -3,9 +3,9 @@ import os
 import script_utilities.file as fl
 import script_utilities.functions as ft
 import time as tm
+import wiiki_editor.parser as ps
 import wiiki_editor.wiiki as wk
 
-import common as cm
 import folders as fd
 
 archive_folder = fd.get_folder("Archive")
@@ -33,23 +33,19 @@ def edit_articles(wiiki: wk.Wiiki, tracklist: fl.TXT, distribution: str) -> None
         
         article = wiiki.article(curid)
         text = article.get_text("Distributions")
-        body = text[:text.find("distribution]]s:\n") + 17]
-        ctd = cm.CustomTrackDistributions(text)
-        entry = cm.CustomTrackDistributions.Line(distribution, version, None, None)
+        distribution_section = ps.DistributionSection(text)
+        entry = ps.DistributionSection.Entry(distribution, version)
         
-        for x in range(len(ctd.distributions)):
-            if entry.name == ctd.distributions[x].name:
-                ctd.distributions[x] = entry
+        for x in range(len(distribution_section)):
+            if entry.name == distribution_section.entries[x].name:
+                distribution_section.entries[x] = entry
                 break
         else:
-            ctd.distributions.append(entry)
+            distribution_section += entry
         
-        ctd.sort_by_name()
-        new_text = body + str(ctd)
-        section_index = article.get_sections().index("Distributions")
-        article.edit_text(new_text, f"Added {distribution}.", section_index)
+        # article.edit_text(str(distribution_section), f"Added {distribution}.", "Distributions")
         print(f"Would edit distribution section of article {article.title} with")
-        print(new_text)
+        print(str(distribution_section))
         tm.sleep(5)
 
 def main() -> None:

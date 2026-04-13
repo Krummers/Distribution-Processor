@@ -43,9 +43,9 @@ def edit_articles(wiiki: wk.Wiiki, tracklist: fl.TXT, distribution: str) -> None
         else:
             distribution_section += entry
         
-        # article.edit_text(str(distribution_section), f"Added {distribution}.", "Distributions")
-        print(f"Would edit distribution section of article {article.title} with")
-        print(str(distribution_section))
+        summary = f"Added {distribution}."
+        print(f"Edited {article.title}: {summary}")
+        article.edit_text(str(distribution_section), summary, "Distributions")
         tm.sleep(5)
 
 def main() -> None:

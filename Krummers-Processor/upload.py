@@ -11,9 +11,14 @@ import folders as fd
 archive_folder = fd.get_folder("Archive")
 
 def select_distribution() -> str:
-    distributions = os.listdir(archive_folder.path)
-    filename = ft.options_question(distributions)
+    files = os.listdir(archive_folder.path)
+    distributions = list(set(map(lambda filename:filename[:-4], files)))
+    filename = ft.options_question(distributions) + ".txt"
     return fl.TXT(os.path.join(archive_folder.path, filename))
+
+def get_distribution_information(filename: str) -> dict[str, str]:
+    pkl = fl.PKL(os.path.join(archive_folder.path, filename[:-3] + "pkl"))
+    return pkl.get_value()
 
 def setup_wiiki() -> wk.Wiiki:
     cwd = os.getcwd()
@@ -50,7 +55,8 @@ def edit_articles(wiiki: wk.Wiiki, tracklist: fl.TXT, distribution: str) -> None
 
 def main() -> None:
     tracklist = select_distribution()
-    distribution = input("Name distribution on Wiiki: ")
+    distribution_information = get_distribution_information(tracklist.filename)
+    distribution = distribution_information["name"]
     wiiki = setup_wiiki()
     edit_articles(wiiki, tracklist, distribution)
 

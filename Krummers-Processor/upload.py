@@ -41,12 +41,26 @@ def edit_articles(wiiki: wk.Wiiki, tracklist: fl.TXT, distribution: str) -> None
         distribution_section = ps.DistributionSection(text)
         entry = ps.DistributionSection.Entry(distribution, version)
         
+        skip_line = False
         for x in range(len(distribution_section)):
             if entry.name == distribution_section.entries[x].name:
+                if distribution_section.entries[x].dis_id:
+                    # Skip the edit if the entry is a Distrib-ref template
+                    print(f"Template:Distrib-ref present for {article.title}.")
+                    skip_line = True
+                
+                if entry.version == distribution_section.entries[x].version:
+                    # Skip the edit if the entry is identical
+                    print(f"Entry would not change the distribution section for {article.title}.")
+                    skip_line = True
+                
                 distribution_section.entries[x] = entry
                 break
         else:
             distribution_section += entry
+        
+        if skip_line:
+            continue
         
         summary = f"Added {distribution}."
         print(f"Edited {article.title}: {summary}")
